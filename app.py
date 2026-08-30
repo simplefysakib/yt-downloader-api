@@ -6,7 +6,7 @@ app = Flask(__name__)
 
 @app.route('/', methods=['GET'])
 def home():
-    return "Server is running with yt-dlp & Cookies!"
+    return "YouTube Downloader API is Live with yt-dlp & Cookies!"
 
 @app.route('/get_video', methods=['GET', 'POST'])
 def get_video():
@@ -17,18 +17,24 @@ def get_video():
         url = data.get('url') if data else None
     
     if not url:
-        return jsonify({"error": "URL missing"}), 400
+        return jsonify({"status": "error", "message": "URL missing"}), 400
     
     try:
-        # MAGIC LINE: Cookies ko use karne ka rasta
+        # Top standards ke mutabiq yt-dlp options
         ydl_opts = {
             'format': 'best',
             'quiet': True,
             'no_warnings': True,
-            'nocheckcertificate': True
+            'nocheckcertificate': True,
+            # YouTube bot detection bypass karne ke liye client arguments
+            'extractor_args': {
+                'youtube': {
+                    'client': ['android', 'ios']
+                }
+            }
         }
         
-        # Check karte hain ki cookie file maujood hai ya nahi
+        # Agar cookies.txt file server par maujood hai toh use attach kar do
         if os.path.exists('cookies.txt'):
             ydl_opts['cookiefile'] = 'cookies.txt'
         
