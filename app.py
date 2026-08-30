@@ -1,17 +1,14 @@
 from flask import Flask, request, jsonify
-from pytubefix import YouTube
+import yt_dlp
 
 app = Flask(__name__)
 
-# Ye naya rasta hai taaki aap browser mein check kar sakein
 @app.route('/', methods=['GET'])
 def home():
-    return "Mubarak ho! Aapka Python Server ekdum Sahi Chal Raha Hai!"
+    return "Server is running with yt-dlp Engine!"
 
-# Ye hamara video nikalne wala rasta hai (Ab GET aur POST dono support karega)
 @app.route('/get_video', methods=['GET', 'POST'])
 def get_video():
-    # Chrome browser (GET) aur Java App (POST) dono se URL lega
     if request.method == 'GET':
         url = request.args.get('url')
     else:
@@ -19,17 +16,26 @@ def get_video():
         url = data.get('url') if data else None
     
     if not url:
-        return jsonify({"error": "Bhai URL to daal"}), 400
+        return jsonify({"error": "URL missing"}), 400
     
     try:
-        yt = YouTube(url)
-        # 720p HD video nikalna
-        stream = yt.streams.get_highest_resolution()
+        # yt-dlp ke advanced options (bot bypass aur best quality)
+        ydl_opts = {
+            'format': 'best',
+            'quiet': True,
+            'no_warnings': True,
+            'nocheckcertificate': True
+        }
+        
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url, download=False)
+            direct_url = info.get('url')
+            title = info.get('title', 'YouTube Video')
         
         return jsonify({
             "status": "success",
-            "title": yt.title,
-            "url": stream.url
+            "title": title,
+            "url": direct_url
         })
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
