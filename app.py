@@ -3,16 +3,27 @@ from pytubefix import YouTube
 
 app = Flask(__name__)
 
-@app.route('/get_video', methods=['POST'])
+# Ye naya rasta hai taaki aap browser mein check kar sakein
+@app.route('/', methods=['GET'])
+def home():
+    return "Mubarak ho! Aapka Python Server ekdum Sahi Chal Raha Hai!"
+
+# Ye hamara video nikalne wala rasta hai (Ab GET aur POST dono support karega)
+@app.route('/get_video', methods=['GET', 'POST'])
 def get_video():
-    data = request.get_json()
-    url = data.get('url') if data else None
+    # Chrome browser (GET) aur Java App (POST) dono se URL lega
+    if request.method == 'GET':
+        url = request.args.get('url')
+    else:
+        data = request.get_json(silent=True)
+        url = data.get('url') if data else None
     
     if not url:
-        return jsonify({"error": "URL missing"}), 400
+        return jsonify({"error": "Bhai URL to daal"}), 400
     
     try:
         yt = YouTube(url)
+        # 720p HD video nikalna
         stream = yt.streams.get_highest_resolution()
         
         return jsonify({
@@ -25,4 +36,4 @@ def get_video():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=10000)
-  
+    
