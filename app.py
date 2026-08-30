@@ -1,11 +1,12 @@
 from flask import Flask, request, jsonify
 import yt_dlp
+import os
 
 app = Flask(__name__)
 
 @app.route('/', methods=['GET'])
 def home():
-    return "Server is running with yt-dlp Engine!"
+    return "Server is running with yt-dlp & Cookies!"
 
 @app.route('/get_video', methods=['GET', 'POST'])
 def get_video():
@@ -19,13 +20,17 @@ def get_video():
         return jsonify({"error": "URL missing"}), 400
     
     try:
-        # yt-dlp ke advanced options (bot bypass aur best quality)
+        # MAGIC LINE: Cookies ko use karne ka rasta
         ydl_opts = {
             'format': 'best',
             'quiet': True,
             'no_warnings': True,
             'nocheckcertificate': True
         }
+        
+        # Check karte hain ki cookie file maujood hai ya nahi
+        if os.path.exists('cookies.txt'):
+            ydl_opts['cookiefile'] = 'cookies.txt'
         
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
